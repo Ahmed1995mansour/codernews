@@ -4,20 +4,25 @@ import { db } from '../datastore';
 import { Post } from '../types';
 import { ExpressHandler } from '../types';
 
-export const listPostsHandler: ExpressHandler<ListPostsRequest, ListPostsResponse> = (req, res) => {
-  res.send({ posts: db.listPosts() });
-};
-
-export const createPostHandler: ExpressHandler<CreatePostRequest, CreatePostResponse> = (
+export const listPostsHandler: ExpressHandler<ListPostsRequest, ListPostsResponse> = async (
   req,
   res
 ) => {
-  if (!req.body.title) {
-    res.status(400).send('Title field is required, but missing!');
-  }
+  res.send({ posts: await db.listPosts() });
+};
+
+export const createPostHandler: ExpressHandler<CreatePostRequest, CreatePostResponse> = async (
+  req,
+  res
+) => {
   if (!req.body.title || !req.body.url || !req.body.userId) {
     return res.sendStatus(400);
   }
+
+  // TODO : Validate user exists
+  // TODO : Get user id from session
+  // TODO : Validate title & url are non-empty
+  // TODO : Validate url is new, otherwise add +1 to post
   const post: Post = {
     id: crypto.randomUUID(),
     postedAt: Date.now(),
@@ -25,6 +30,6 @@ export const createPostHandler: ExpressHandler<CreatePostRequest, CreatePostResp
     url: req.body.url,
     userId: req.body.userId,
   };
-  db.createPost(post);
+  await db.createPost(post);
   res.sendStatus(200);
 };
